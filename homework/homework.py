@@ -49,6 +49,65 @@ def clean_campaign_data():
 
 
     """
+    import pandas as pd
+    import zipfile
+    import os
+    import warnings
+    warnings.filterwarnings('ignore')
+
+    #
+    # Lectura de datos
+    #
+    file_names = os.listdir('files/input/')
+
+    for i, file in enumerate(file_names):
+        with zipfile.ZipFile(f'files/input/{file}', 'r') as z:
+            with z.open(f'bank_marketing_{i}.csv') as f:
+                if i == 0:
+                    df = pd.read_csv(f)
+                else:
+                    df = pd.concat([df, pd.read_csv(f)])
+    
+
+    #
+    # Creación y limpiezade del dataframe df_client
+    #
+    df_client = df[['client_id', 'age', 'job', 'marital', 'education', 'credit_default', 'mortgage']]
+    df_client['job'] = df_client['job'].apply(lambda x: x.replace('.', '')).apply(lambda x: x.replace('-', '_'))
+    df_client['education'] = df_client['education'].apply(lambda x: x.replace('.', '_')).apply(lambda x: x.replace('unknown', 'pd.NA'))
+    df_client['credit_default'] = df_client['credit_default'].apply(lambda x:  1 if x == 'yes' else 0)
+    df_client['mortgage'] = df_client['mortgage'].apply(lambda x:  1 if x == 'yes' else 0)
+    print(df_client.head(n=30))
+
+
+    #
+    # Creación y limpiezade del dataframe df_campaign
+    #
+    df_campaign = df[['client_id', 'number_contacts', 'contact_duration', 'previous_campaign_contacts', 'previous_outcome', 'campaign_outcome']]
+    df_campaign['previous_outcome'] = df_campaign['previous_outcome'].apply(lambda x:  1 if x == 'success' else 0)
+    df_campaign['campaign_outcome'] = df_campaign['campaign_outcome'].apply(lambda x:  1 if x == 'yes' else 0)
+    df_campaign['last_contact_date'] = pd.to_datetime(df['day'].astype(str) + '-' + df['month'].astype(str) + '-2022', format='%d-%b-%Y')
+    df_campaign['last_contact_date'] = df_campaign['last_contact_date'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    # print(df_campaign.head(n=30))
+
+    #
+    # Creación del df_economics y limpieza
+    #
+    df_economics = df[['client_id', 'cons_price_idx', 'euribor_three_months']]
+
+
+    #
+    # Guardar archivos
+    #
+    if os.path.exists('files/output'):
+        pass
+    else:
+        os.makedirs('files/output')
+
+
+    df_client.to_csv('files/output/client.csv', index=False)
+    df_campaign.to_csv('files/output/campaign.csv', index=False)
+    df_economics.to_csv('files/output/economics.csv', index=False)
 
     return
 
