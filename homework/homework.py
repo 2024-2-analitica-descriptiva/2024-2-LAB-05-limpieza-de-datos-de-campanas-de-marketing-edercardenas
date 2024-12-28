@@ -60,14 +60,21 @@ def clean_campaign_data():
     #
     file_names = os.listdir('files/input/')
 
-    for i, file in enumerate(file_names):
-        with zipfile.ZipFile(f'files/input/{file}', 'r') as z:
-            with z.open(f'bank_marketing_{i}.csv') as f:
-                if i == 0:
-                    df = pd.read_csv(f)
-                else:
-                    df = pd.concat([df, pd.read_csv(f)])
+    # for i, file in enumerate(file_names):
+    #     with zipfile.ZipFile(f'files/input/{file}', 'r') as z:
+    #         with z.open(f'bank_marketing_{i}.csv') as f:
+    #             if i == 0:
+    #                 df = pd.read_csv(f)
+    #             else:
+    #                 df = pd.concat([df, pd.read_csv(f)])
     
+    df = pd.DataFrame()
+    for file_zip in file_names:
+        with zipfile.ZipFile(f'files/input/{file_zip}', 'r') as z:
+            for csv_file in z.namelist():
+                if csv_file.endswith('.csv'):
+                    df = pd.concat([df, pd.read_csv(z.open(csv_file))])
+
 
     #
     # Creación y limpiezade del dataframe df_client
